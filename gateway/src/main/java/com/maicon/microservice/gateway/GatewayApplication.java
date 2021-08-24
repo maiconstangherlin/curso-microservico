@@ -1,16 +1,18 @@
-package com.maicon.microservice.discovery;
+package com.maicon.microservice.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 
-@EnableEurekaServer
+@EnableZuulProxy
+@EnableEurekaClient
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
-public class DiscoveryApplication {
+public class GatewayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DiscoveryApplication.class, args);
+        SpringApplication.run(GatewayApplication.class, args);
     }
 
 }
