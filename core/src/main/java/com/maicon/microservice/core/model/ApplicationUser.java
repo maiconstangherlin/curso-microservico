@@ -24,6 +24,7 @@ public class ApplicationUser implements AbstractyEntity {
     @NotNull(message = "The field 'username' is mandatory")
     private String username;
 
+    @ToString.Exclude
     @Column(nullable = false)
     @NotNull(message = "The field 'password' is mandatory")
     private String password;
