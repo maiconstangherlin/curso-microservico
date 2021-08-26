@@ -21,7 +21,8 @@
 		<module>core</module>
         <module>discovery</module>
 		<module>gateway</module>
-	</modules>
+        <module>auth</module>
+    </modules>
 
 	<properties>
 		<spring-cloud.version>Greenwich.RELEASE</spring-cloud.version>
