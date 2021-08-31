@@ -10,7 +10,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
-      - microservices:/var/lib/mysql
+      - C:\Development\docker-volumes\curso-microservico:/var/lib/mysql
 
-volumes:
-  microservices:
+#volumes:
+#  microservices:

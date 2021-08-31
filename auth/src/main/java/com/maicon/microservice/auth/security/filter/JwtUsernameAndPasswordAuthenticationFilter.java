@@ -3,9 +3,8 @@ package com.maicon.microservice.auth.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maicon.microservice.core.model.ApplicationUser;
 import com.maicon.microservice.core.property.JwtConfiguration;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -24,10 +23,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPublicKey;
@@ -64,9 +61,17 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication auth)
-            throws IOException, ServletException {
+    @SneakyThrows
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication auth) {
         log.info("Authentication was successful for the user '{}', generating JWT token", auth.getName());
+
+        SignedJWT signedJWT = createSignedJWT(auth);
+        String encryptToken = encryptToken(signedJWT);
+
+        log.info("Token generated successfully, adding it to the response header");
+
+        response.addHeader("Access-Control-Expose-Headers", "XSRF-TOKEN" + jwtConfiguration.getHeader().getName());
+        response.addHeader(jwtConfiguration.getHeader().getName(), jwtConfiguration.getHeader().getPrefix() + encryptToken);
     }
 
     @SneakyThrows
@@ -94,6 +99,7 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
 
         signedJWT.sign(signer);
 
+        log.info("Serialized token '{}'", signedJWT.serialize());
         return signedJWT;
     }
 
@@ -119,5 +125,24 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
         generator.initialize(2048);
 
         return generator.genKeyPair();
+    }
+
+    private String encryptToken(SignedJWT signedJWT) throws JOSEException {
+        log.info("Starting the encryotToken method");
+
+        DirectEncrypter directEncrypter = new DirectEncrypter(jwtConfiguration.getPrivateKey().getBytes());
+        JWEObject jweObject = new JWEObject(
+                new JWEHeader
+                        .Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
+                        .contentType("JWT").build(),
+                new Payload(signedJWT));
+
+        log.info("Encrypting token with system's private key");
+
+        jweObject.encrypt(directEncrypter);
+
+        log.info("Token encrypted");
+
+        return jweObject.serialize();
     }
 }
