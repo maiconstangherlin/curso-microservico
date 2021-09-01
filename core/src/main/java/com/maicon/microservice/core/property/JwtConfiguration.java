@@ -21,7 +21,7 @@ public class JwtConfiguration {
     private Header header = new Header();
 
     private int expiration = 3600;
-    private String privateKey = "987654321";
+    private String privateKey = "qxBEEQv7E8aviX1KUcdOiF5ve5COUPAr";
     private String type = "encrypted";
 
     @Getter
